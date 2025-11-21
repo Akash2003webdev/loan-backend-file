@@ -139,4 +139,15 @@ router.get("/documents/:applicantId", async (req, res) => {
   res.json(docs);
 });
 
+
+router.get("/applicant/all", auth, async (req, res) => {
+  try {
+    const applicants = await Applicant.find(); // fetch all applicants
+    res.status(200).json(applicants);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch applicants", error: err.message });
+  }
+});
+
 export default router;
