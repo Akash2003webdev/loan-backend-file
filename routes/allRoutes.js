@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 
-import user from "../models/User.js";
+import User from "../models/User.js";
 import Loan from "../models/Loan.js";
 import Applicant from "../models/Applicant.js";
 import Document from "../models/Document.js";
@@ -58,7 +58,7 @@ router.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await user.create({
+    await User.create({
       username,
       password: hashedPassword,
     });
