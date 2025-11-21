@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 
-import User from "../models/User.js";
+import user from "../models/User.js";
 import Loan from "../models/Loan.js";
 import Applicant from "../models/Applicant.js";
 import Document from "../models/Document.js";
@@ -26,12 +26,46 @@ const auth = (req, res, next) => {
 // 🔐 LOGIN + REGISTER
 // --------------------------
 
-router.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-  const hash = await bcrypt.hash(password, 10);
+// router.post("/register", async (req, res) => {
+//   try {
+//     const { username, password } = req.body;
 
-  await User.create({ username, password: hash });
-  res.json({ message: "Registered" });
+//     if (!username || !password) {
+//       return res.json({ message: "All fields required" });
+//     }
+
+//     const exists = await User.findOne({ username });
+//     if (exists) {
+//       return res.json({ message: "User already exists" });
+//     }
+
+//     const hash = await bcrypt.hash(password, 10);
+
+//     await User.create({ username, password: hash });
+
+//     res.json({ message: "Registered Successfully" });
+//   } catch (err) {
+//     res.json({ message: "Error", error: err.message });
+//   }
+// });
+
+router.post("/register", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ message: "all fields are required" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await user.create({
+      username,
+      password: hashedPassword,
+    });
+    res.status(200).json({ message: `registerd` });
+  } catch (error) {
+    res.status(500).json({ message: `something went wrong ${error}` });
+  }
 });
 
 router.post("/login", async (req, res) => {
@@ -73,7 +107,7 @@ router.post("/applicant/add", auth, async (req, res) => {
 
 const storage = multer.diskStorage({
   destination: "uploads/",
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname)
+  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
 });
 
 const upload = multer({ storage });
@@ -82,15 +116,19 @@ const upload = multer({ storage });
 // 📄 Upload Document
 // --------------------------
 
-router.post("/document/upload/:applicantId", upload.single("file"), async (req, res) => {
-  const doc = await Document.create({
-    applicantId: req.params.applicantId,
-    fileName: req.file.originalname,
-    filePath: req.file.path
-  });
+router.post(
+  "/document/upload/:applicantId",
+  upload.single("file"),
+  async (req, res) => {
+    const doc = await Document.create({
+      applicantId: req.params.applicantId,
+      fileName: req.file.originalname,
+      filePath: req.file.path,
+    });
 
-  res.json(doc);
-});
+    res.json(doc);
+  }
+);
 
 // --------------------------
 // 📃 Get Documents List
